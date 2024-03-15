@@ -1,0 +1,27 @@
+---
+- name: setup proxy
+  hosts: all
+  become: true
+  vars:
+    squid_port: 3128
+    localnet: "192.168.0.0/24"
+  tasks:
+    - name: squid installed
+      ansible.builtin.yum:
+        name: squid
+        state: latest
+    - name: squid configuration
+      ansible.builtin.template:
+        src: "templates/squid.conf.j2"
+        dest: "/etc/squid/squid.conf"
+    - name: squid service enabled
+      ansible.builtin.service:
+        name: squid
+        enabled: true
+        state: started
+    - name: open firewall
+      ansible.posix.firewalld:
+        port: "{{ squid_port }}/tcp"
+        state: enabled
+        immediate: true
+        permanent: true
